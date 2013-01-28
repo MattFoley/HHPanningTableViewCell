@@ -109,7 +109,7 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
     _drawerRevealed = NO;
 	self.directionMask = 0;
 	self.shouldBounce = YES;
-    self.panOffset = 0.f;
+    self.panOffset = 180.f;
 	
 	[self addObserver:self forKeyPath:@"containerView.frame" options:0 context:(__bridge void *)kContainerFrameContext];
 }
@@ -135,7 +135,7 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
 	[containerView setAutoresizesSubviews:YES];
 	[containerView setAutoresizingMask:UIViewAutoresizingFlexibleWidth|UIViewAutoresizingFlexibleHeight];
 	
-	[containerView setBackgroundColor:[UIColor whiteColor]];
+	[containerView setBackgroundColor:[UIColor clearColor]];
 	
 	return containerView;
 }
@@ -555,7 +555,7 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
 		[containerView insertSubview:subview atIndex:0];
 	}
     
-	[drawerView setFrame:[cellView bounds]];
+	//[drawerView setFrame:[cellView.bo bounds]];
     
 	[self updateShadowFrame];
 }
@@ -564,18 +564,16 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
 {
 	UIView* cellView = self;
 	CGRect cellBounds = [cellView bounds];
-	UIView* containerView = self.containerView;
 	UIView* shadowView = self.shadowView;
-	CGRect containerFrame = [containerView frame];
-	CGRect shadowFrame = containerFrame;
+	CGRect shadowFrame = self.drawerView.frame;
 	
 	shadowFrame.size.width *= 2.0;
 	
-	if (containerFrame.origin.x < cellBounds.origin.x) {
-        shadowFrame.origin.x = containerFrame.origin.x + containerFrame.size.width;
+	if (self.drawerView.frame.origin.x < cellBounds.origin.x) {
+        shadowFrame.origin.x = self.drawerView.frame.origin.x + self.drawerView.frame.size.width;
 	}
 	else {
-        shadowFrame.origin.x = containerFrame.origin.x - shadowFrame.size.width;
+        shadowFrame.origin.x = self.drawerView.frame.origin.x - shadowFrame.size.width;
 	}
     
 	[shadowView setFrame:shadowFrame];
