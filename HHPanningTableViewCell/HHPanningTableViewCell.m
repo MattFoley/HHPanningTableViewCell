@@ -262,6 +262,8 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
         [cellView addSubview:containerView];
         
         if (revealed) {
+            
+            
             if (direction == HHPanningTableViewCellDirectionRight) {
                 frame.origin.x = bounds.origin.x + bounds.size.width - self.panOffset;
             }
@@ -270,7 +272,9 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
             }
             
             self.animationInProgress = YES;
+            BOOL shouldBounce = self.shouldBounce;
             
+            if (!shouldBounce) {
             [UIView animateWithDuration:duration
                                   delay:0.0f
                                 options:UIViewAnimationOptionCurveEaseOut
@@ -279,8 +283,42 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
                              } completion:^(BOOL finished) {
                                  self.animationInProgress = NO;
                              }];
-        }
-        else {
+            } else {
+                CGFloat bounceDuration = duration;
+                CGFloat offsetX = containerView.frame.origin.x+containerView.frame.size.width;
+                CGFloat bounceMultiplier = fminf(fabsf(offsetX / HH_PANNING_TRIGGER_OFFSET), 1.0f);
+                CGFloat bounceDistance = bounceMultiplier * HH_PANNING_BOUNCE_DISTANCE;
+                
+                if (offsetX < 0.0f) {
+                    bounceDistance *= -1.0;
+                }
+                
+                self.animationInProgress = YES;
+                
+            [UIView animateWithDuration:duration
+                                  delay:0.0f
+                                options:UIViewAnimationOptionCurveEaseOut
+                             animations:^{
+                                 [containerView setFrame:frame];
+                             } completion:^(BOOL finished) {
+                                 [UIView animateWithDuration:bounceDuration
+                                                       delay:0.0f
+                                                     options:UIViewAnimationCurveLinear
+                                                  animations:^{
+                                                      [containerView setFrame:CGRectOffset(frame, -bounceDistance, 0.0f)];
+                                                  } completion:^(BOOL finished) {
+                                                      [UIView animateWithDuration:bounceDuration
+                                                                            delay:0.0f
+                                                                          options:UIViewAnimationCurveLinear
+                                                                       animations:^{
+                                                                           [containerView setFrame:frame];
+                                                                       } completion:^(BOOL finished) {
+                                                                           self.animationInProgress = NO;
+                                                                       }];
+                                                  }];
+                             }];
+            }
+        } else {
             frame.origin.x = 0.0;
             
             BOOL shouldBounce = self.shouldBounce;
@@ -322,8 +360,7 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
                                                                            }];
                                                       }];
                                  }];
-            }
-            else {
+            } else {
                 self.animationInProgress = YES;
                 
                 [UIView animateWithDuration:duration
