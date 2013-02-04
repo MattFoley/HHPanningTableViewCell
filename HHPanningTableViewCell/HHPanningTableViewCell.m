@@ -37,7 +37,7 @@
 
 #define HH_PANNING_ANIMATION_DURATION		0.1f
 #define HH_PANNING_BOUNCE_DISTANCE			10.0f
-#define HH_PANNING_MINIMUM_PAN				50.0f
+#define HH_PANNING_MINIMUM_PAN				20.0f
 #define HH_PANNING_MAXIMUM_PAN              0.0f //Set to 0.0f for full view width
 #define HH_PANNING_TRIGGER_OFFSET			100.0f
 #define HH_PANNING_USE_VELOCITY             YES
@@ -109,7 +109,7 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
     _drawerRevealed = NO;
 	self.directionMask = 0;
 	self.shouldBounce = YES;
-    self.panOffset = 180.f;
+    self.panOffset = 60.f;
 	
 	[self addObserver:self forKeyPath:@"containerView.frame" options:0 context:(__bridge void *)kContainerFrameContext];
 }
@@ -430,6 +430,7 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
             [self addSubview:drawerView];
             [self addSubview:shadowView];
             [self addSubview:containerView];
+            
             [self setSelected:NO];
             
             self.panOriginX = self.containerView.frame.origin.x;
@@ -604,13 +605,13 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
 	UIView* shadowView = self.shadowView;
 	CGRect shadowFrame = self.drawerView.frame;
 	
-	shadowFrame.size.width *= 2.0;
+	//shadowFrame.size.width *= 2.0;
 	
 	if (self.drawerView.frame.origin.x < cellBounds.origin.x) {
         shadowFrame.origin.x = self.drawerView.frame.origin.x + self.drawerView.frame.size.width;
 	}
 	else {
-        shadowFrame.origin.x = self.drawerView.frame.origin.x - shadowFrame.size.width;
+        shadowFrame.origin.x = self.drawerView.frame.origin.x;
 	}
     
 	[shadowView setFrame:shadowFrame];
