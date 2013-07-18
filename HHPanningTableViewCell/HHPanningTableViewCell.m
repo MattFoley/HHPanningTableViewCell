@@ -101,7 +101,6 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
 - (void)panningTableViewCellInit
 {
 	self.containerView = [self createContainerView];
-	//self.shadowView = [self createShadowView];
 	self.panGestureRecognizer = [self createPanGesureRecognizer];
 	
 	[self addGestureRecognizer:self.panGestureRecognizer];
@@ -275,14 +274,14 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
             BOOL shouldBounce = self.shouldBounce;
             
             if (!shouldBounce) {
-            [UIView animateWithDuration:duration
-                                  delay:0.0f
-                                options:UIViewAnimationOptionCurveEaseOut
-                             animations:^{
-                                 [containerView setFrame:frame];
-                             } completion:^(BOOL finished) {
-                                 self.animationInProgress = NO;
-                             }];
+                [UIView animateWithDuration:duration
+                                      delay:0.0f
+                                    options:UIViewAnimationOptionCurveEaseOut
+                                 animations:^{
+                                     [containerView setFrame:frame];
+                                 } completion:^(BOOL finished) {
+                                     self.animationInProgress = NO;
+                                 }];
             } else {
                 CGFloat bounceDuration = duration;
                 CGFloat offsetX = containerView.frame.origin.x+containerView.frame.size.width;
@@ -295,28 +294,28 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
                 
                 self.animationInProgress = YES;
                 
-            [UIView animateWithDuration:duration
-                                  delay:0.0f
-                                options:UIViewAnimationOptionCurveEaseOut
-                             animations:^{
-                                 [containerView setFrame:frame];
-                             } completion:^(BOOL finished) {
-                                 [UIView animateWithDuration:bounceDuration
-                                                       delay:0.0f
-                                                     options:UIViewAnimationOptionCurveLinear
-                                                  animations:^{
-                                                      [containerView setFrame:CGRectOffset(frame, -bounceDistance, 0.0f)];
-                                                  } completion:^(BOOL finished) {
-                                                      [UIView animateWithDuration:bounceDuration
-                                                                            delay:0.0f
-                                                                          options:UIViewAnimationOptionCurveLinear
-                                                                       animations:^{
-                                                                           [containerView setFrame:frame];
-                                                                       } completion:^(BOOL finished) {
-                                                                           self.animationInProgress = NO;
-                                                                       }];
-                                                  }];
-                             }];
+                [UIView animateWithDuration:duration
+                                      delay:0.0f
+                                    options:UIViewAnimationOptionCurveEaseOut
+                                 animations:^{
+                                     [containerView setFrame:frame];
+                                 } completion:^(BOOL finished) {
+                                     [UIView animateWithDuration:bounceDuration
+                                                           delay:0.0f
+                                                         options:UIViewAnimationOptionCurveLinear
+                                                      animations:^{
+                                                          [containerView setFrame:CGRectOffset(frame, -bounceDistance, 0.0f)];
+                                                      } completion:^(BOOL finished) {
+                                                          [UIView animateWithDuration:bounceDuration
+                                                                                delay:0.0f
+                                                                              options:UIViewAnimationOptionCurveLinear
+                                                                           animations:^{
+                                                                               [containerView setFrame:frame];
+                                                                           } completion:^(BOOL finished) {
+                                                                               self.animationInProgress = NO;
+                                                                           }];
+                                                      }];
+                                 }];
             }
         } else {
             frame.origin.x = 0.0;
