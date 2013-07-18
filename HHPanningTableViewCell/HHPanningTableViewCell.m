@@ -38,7 +38,7 @@
 #define HH_PANNING_ANIMATION_DURATION		0.1f
 #define HH_PANNING_BOUNCE_DISTANCE			10.0f
 #define HH_PANNING_MINIMUM_PAN				20.0f
-#define HH_PANNING_MAXIMUM_PAN              0.0f //Set to 0.0f for full view width
+#define HH_PANNING_MAXIMUM_PAN              100.0f //Set to 0.0f for full view width
 #define HH_PANNING_TRIGGER_OFFSET			100.0f
 #define HH_PANNING_USE_VELOCITY             YES
 
@@ -101,7 +101,7 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
 - (void)panningTableViewCellInit
 {
 	self.containerView = [self createContainerView];
-	self.shadowView = [self createShadowView];
+	//self.shadowView = [self createShadowView];
 	self.panGestureRecognizer = [self createPanGesureRecognizer];
 	
 	[self addGestureRecognizer:self.panGestureRecognizer];
@@ -109,7 +109,7 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
     _drawerRevealed = NO;
 	self.directionMask = 0;
 	self.shouldBounce = YES;
-    self.panOffset = 60.f;
+    self.panOffset = 160.f;
 	
 	[self addObserver:self forKeyPath:@"containerView.frame" options:0 context:(__bridge void *)kContainerFrameContext];
 }
@@ -303,13 +303,13 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
                              } completion:^(BOOL finished) {
                                  [UIView animateWithDuration:bounceDuration
                                                        delay:0.0f
-                                                     options:UIViewAnimationCurveLinear
+                                                     options:UIViewAnimationOptionCurveLinear
                                                   animations:^{
                                                       [containerView setFrame:CGRectOffset(frame, -bounceDistance, 0.0f)];
                                                   } completion:^(BOOL finished) {
                                                       [UIView animateWithDuration:bounceDuration
                                                                             delay:0.0f
-                                                                          options:UIViewAnimationCurveLinear
+                                                                          options:UIViewAnimationOptionCurveLinear
                                                                        animations:^{
                                                                            [containerView setFrame:frame];
                                                                        } completion:^(BOOL finished) {
@@ -343,13 +343,13 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
                                  } completion:^(BOOL finished) {
                                      [UIView animateWithDuration:bounceDuration
                                                            delay:0.0f
-                                                         options:UIViewAnimationCurveLinear
+                                                         options:UIViewAnimationOptionCurveLinear
                                                       animations:^{
                                                           [containerView setFrame:CGRectOffset(frame, bounceDistance, 0.0f)];
                                                       } completion:^(BOOL finished) {
                                                           [UIView animateWithDuration:bounceDuration
                                                                                 delay:0.0f
-                                                                              options:UIViewAnimationCurveLinear
+                                                                              options:UIViewAnimationOptionCurveLinear
                                                                            animations:^{
                                                                                [containerView setFrame:frame];
                                                                            } completion:^(BOOL finished) {
@@ -565,7 +565,8 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
 	}
 	
 	// Move other subviews. E.g. drag reorder control
-	for (UIView *subview in [self.subviews reverseObjectEnumerator]) {
+    
+	for (UIView *subview in [[[self.subviews[0] subviews][0] subviews] reverseObjectEnumerator]) {
 		if (subview == containerView) {
 			continue;
 		}
@@ -590,7 +591,9 @@ static HHPanningTableViewCellDirection HHOppositeDirection(HHPanningTableViewCel
 			continue;
 		}
 		
-		[containerView insertSubview:subview atIndex:0];
+        if (subview != containerView.superview) {
+            [containerView insertSubview:subview atIndex:0];
+        }
 	}
     
 	//[drawerView setFrame:[cellView.bo bounds]];
