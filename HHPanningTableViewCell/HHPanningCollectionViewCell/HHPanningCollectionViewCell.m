@@ -264,99 +264,107 @@ static HHPanningCollectionViewCellDirection HHOppositeDirection(HHPanningCollect
 	}
 }
 
-- (void)setDrawerRevealed:(BOOL)revealed direction:(HHPanningCollectionViewCellDirection)direction animated:(BOOL)animated
-{
-	if (self.drawerView == nil) {
-		return;
-	}
-
-	self.drawerRevealed = revealed;
-
-	UIView *drawerView = self.drawerView;
-	UIView *shadowView = self.shadowView;
-	UIView *containerView = self.containerView;
-	CGRect frame = [containerView frame];
-
-	UIView *cellView = self;
-	CGRect bounds = [cellView bounds];
-	CGFloat duration = animated ? HH_PANNING_ANIMATION_DURATION : 0.0f;
-
-	[cellView addSubview:drawerView];
-	[cellView addSubview:shadowView];
-	[cellView addSubview:containerView];
-
-	if (revealed) {
-		if (direction == HHPanningCollectionViewCellDirectionRight) {
-			frame.origin.x = self.revealDistance > 0 ?
-                bounds.origin.x + self.revealDistance :
-                bounds.origin.x + bounds.size.width;
-		}
-		else {
-			frame.origin.x = self.revealDistance > 0 ?
-                bounds.origin.x - self.revealDistance :
-                bounds.origin.x - bounds.size.width;
-		}
-
-		self.animationInProgress = YES;
-
-        void (^animations)(void) = ^ {
-            [containerView setFrame:frame];
-        };
-
-        void (^completion)(BOOL finished) = ^(BOOL finished) {
-            if (self.revealDistance == 0) {
-                [containerView removeFromSuperview];
+- (void)setDrawerRevealed:(BOOL)revealed direction:(HHPanningCollectionViewCellDirection)direction animated:(BOOL)animated {
+    if (self.drawerRevealed != revealed) {
+        if ( (self.drawerView == nil)) {
+            return;
+        }
+        
+        self.drawerRevealed = revealed;
+        
+        UIView *drawerView = self.drawerView;
+        UIView *shadowView = self.shadowView;
+        UIView *containerView = self.containerView;
+        CGRect frame = [containerView frame];
+        
+        UIView *cellView = self;
+        CGRect bounds = [cellView bounds];
+        CGFloat duration = animated ? HH_PANNING_ANIMATION_DURATION : 0.0f;
+        
+        [cellView addSubview:drawerView];
+        [cellView addSubview:shadowView];
+        [cellView addSubview:containerView];
+        
+        if (revealed) {
+            
+            
+            if (direction == HHPanningCollectionViewCellDirectionRight) {
+                frame.origin.x = bounds.origin.x + bounds.size.width - self.revealDistance;
             }
-
-            self.animationInProgress = NO;
-        };
-
-        if (animated) {
-            [UIView animateWithDuration:HH_PANNING_ANIMATION_DURATION
-                                  delay:0.0f
-                                options:UIViewAnimationOptionCurveLinear
-                             animations:animations
-                             completion:completion];
-        }
-        else {
-            animations();
-            completion(YES);
-        }
-	}
-	else {
-		frame.origin.x = 0.0;
-
-        void (^animations)(void) = ^ {
-            [containerView setFrame:frame];
-        };
-
-        self.animationInProgress = YES;
-
-        void (^completion)(BOOL finished) = ^(BOOL finished) {
-            [drawerView removeFromSuperview];
-            [shadowView removeFromSuperview];
-
-            self.animationInProgress = NO;
-        };
-
-        if (animated) {
+            else {
+                frame.origin.x = bounds.origin.x - bounds.size.width + self.revealDistance;
+            }
+            
+            self.animationInProgress = YES;
             BOOL shouldBounce = self.shouldBounce;
-
+            
+            if (!shouldBounce) {
+                [UIView animateWithDuration:duration
+                                      delay:0.0f
+                                    options:UIViewAnimationOptionCurveEaseOut
+                                 animations:^{
+                                     [containerView setFrame:frame];
+                                 } completion:^(BOOL finished) {
+                                     self.animationInProgress = NO;
+                                 }];
+            } else {
+                CGFloat bounceDuration = duration;
+                CGFloat offsetX = containerView.frame.origin.x+containerView.frame.size.width;
+                CGFloat bounceMultiplier = fminf(fabsf(offsetX / HH_PANNING_TRIGGER_OFFSET), 1.0f);
+                CGFloat bounceDistance = bounceMultiplier * HH_PANNING_BOUNCE_DISTANCE;
+                
+                if (offsetX < 0.0f) {
+                    bounceDistance *= -1.0;
+                }
+                
+                self.animationInProgress = YES;
+                
+                [UIView animateWithDuration:duration
+                                      delay:0.0f
+                                    options:UIViewAnimationOptionCurveEaseOut
+                                 animations:^{
+                                     [containerView setFrame:frame];
+                                 } completion:^(BOOL finished) {
+                                     [UIView animateWithDuration:bounceDuration
+                                                           delay:0.0f
+                                                         options:UIViewAnimationOptionCurveLinear
+                                                      animations:^{
+                                                          [containerView setFrame:CGRectOffset(frame, -bounceDistance, 0.0f)];
+                                                      } completion:^(BOOL finished) {
+                                                          [UIView animateWithDuration:bounceDuration
+                                                                                delay:0.0f
+                                                                              options:UIViewAnimationOptionCurveLinear
+                                                                           animations:^{
+                                                                               [containerView setFrame:frame];
+                                                                           } completion:^(BOOL finished) {
+                                                                               self.animationInProgress = NO;
+                                                                           }];
+                                                      }];
+                                 }];
+            }
+        } else {
+            frame.origin.x = 0.0;
+            
+            BOOL shouldBounce = self.shouldBounce;
+            
             if (shouldBounce) {
                 CGFloat bounceDuration = duration;
                 CGFloat offsetX = containerView.frame.origin.x;
                 CGFloat bounceMultiplier = fminf(fabsf(offsetX / HH_PANNING_TRIGGER_OFFSET), 1.0f);
                 CGFloat bounceDistance = bounceMultiplier * HH_PANNING_BOUNCE_DISTANCE;
-
+                
                 if (offsetX < 0.0f) {
                     bounceDistance *= -1.0;
                 }
-
+                
+                self.animationInProgress = YES;
+                
                 [UIView animateWithDuration:duration
                                       delay:0.0f
                                     options:UIViewAnimationOptionCurveEaseOut
-                                 animations:animations
-                                 completion:^(BOOL finished) {
+                                 animations:^{
+                                     [containerView setFrame:frame];
+                                 } completion:^(BOOL finished) {
                                      [UIView animateWithDuration:bounceDuration
                                                            delay:0.0f
                                                          options:UIViewAnimationOptionCurveLinear
@@ -366,26 +374,34 @@ static HHPanningCollectionViewCellDirection HHOppositeDirection(HHPanningCollect
                                                           [UIView animateWithDuration:bounceDuration
                                                                                 delay:0.0f
                                                                               options:UIViewAnimationOptionCurveLinear
-                                                                           animations:animations
-                                                                           completion:completion];
+                                                                           animations:^{
+                                                                               [containerView setFrame:frame];
+                                                                           } completion:^(BOOL finished) {
+                                                                               [drawerView removeFromSuperview];
+                                                                               [shadowView removeFromSuperview];
+                                                                               
+                                                                               self.animationInProgress = NO;
+                                                                           }];
                                                       }];
                                  }];
-            }
-            else {
+            } else {
+                self.animationInProgress = YES;
+                
                 [UIView animateWithDuration:duration
                                       delay:0.0f
                                     options:UIViewAnimationOptionCurveEaseOut
-                                 animations:animations
-                                 completion:completion];
+                                 animations:^{
+                                     [containerView setFrame:frame];
+                                 } completion:^(BOOL finished) {
+                                     [drawerView removeFromSuperview];
+                                     [shadowView removeFromSuperview];
+                                     
+                                     self.animationInProgress = NO;
+                                 }];
             }
         }
-        else {
-            animations();
-            completion(YES);
-        }
-	}
+    }
 }
-
 
 #pragma mark -
 #pragma mark Gesture recognizer
@@ -451,37 +467,36 @@ static HHPanningCollectionViewCellDirection HHOppositeDirection(HHPanningCollect
 		self.panning = NO;
 	}
 	else if (state == UIGestureRecognizerStateChanged) {
-		CGPoint translation = [gestureRecognizer translationInView:self];
-		CGFloat totalPanX = translation.x;
-
-		if (!self.panning) {
-			if (fabsf(totalPanX) <= self.minimumPan) {
-				totalPanX = 0.0f;
-			}
-			else {
-				self.panning = YES;
-			}
-		}
-
-		UIView *containerView = self.containerView;
-		CGRect containerViewFrame = [containerView frame];
-
-		containerViewFrame.origin.x = self.panOriginX + totalPanX;
-
-        CGFloat maximumPan = self.maximumPan;
-        CGFloat width = (maximumPan > 0.0f) ? maximumPan : self.bounds.size.width;
-		NSInteger directionMask = self.directionMask;
-		CGFloat leftLimit = (directionMask & HHPanningCollectionViewCellDirectionLeft) ? (-1.0 * width) : 0.0f;
-		CGFloat rightLimit = (directionMask & HHPanningCollectionViewCellDirectionRight) ? width : 0.0f;
-
-		if (containerViewFrame.origin.x <= leftLimit) {
-			containerViewFrame.origin.x = leftLimit;
-		}
-		else if (containerViewFrame.origin.x >= rightLimit) {
-			containerViewFrame.origin.x = rightLimit;
-		}
-
-		[containerView setFrame:containerViewFrame];
+        CGPoint translation = [gestureRecognizer translationInView:self];
+        CGFloat totalPanX = translation.x;
+        
+        if (!self.panning) {
+            if (fabsf(totalPanX) <= HH_PANNING_MINIMUM_PAN) {
+                totalPanX = 0.0f;
+            }
+            else {
+                self.panning = YES;
+            }
+        }
+        
+        UIView *containerView = self.containerView;
+        CGRect containerViewFrame = [containerView frame];
+        
+        containerViewFrame.origin.x = self.panOriginX + totalPanX;
+        
+        CGFloat width = (HH_PANNING_MAXIMUM_PAN > 0.0f) ? HH_PANNING_MAXIMUM_PAN : self.bounds.size.width - self.revealDistance;
+        NSInteger directionMask = self.directionMask;
+        CGFloat leftLimit = (directionMask & HHPanningCollectionViewCellDirectionLeft) ? (-1.0 * width) : 0.0f;
+        CGFloat rightLimit = (directionMask & HHPanningCollectionViewCellDirectionRight) ? width : 0.0f;
+        
+        if (containerViewFrame.origin.x <= leftLimit) {
+            containerViewFrame.origin.x = leftLimit;
+        }
+        else if (containerViewFrame.origin.x >= rightLimit) {
+            containerViewFrame.origin.x = rightLimit;
+        }
+        
+        [containerView setFrame:containerViewFrame];
 	}
     else if ((state == UIGestureRecognizerStateEnded) || (state == UIGestureRecognizerStateCancelled)) {
 		BOOL drawerRevealed = self.drawerRevealed;
@@ -560,10 +575,10 @@ static HHPanningCollectionViewCellDirection HHOppositeDirection(HHPanningCollect
 
 		if (self.drawerRevealed) {
 			if (containerFrame.origin.x > cellBounds.origin.x) {
-				containerFrame.origin.x = cellBounds.origin.x + cellBounds.size.width;
+				containerFrame.origin.x = cellBounds.origin.x + cellBounds.size.width - self.revealDistance;
 			}
 			else {
-				containerFrame.origin.x = cellBounds.origin.x - cellBounds.size.width;
+				containerFrame.origin.x = cellBounds.origin.x - cellBounds.size.width + self.revealDistance;
 			}
 
 			[containerView setFrame:containerFrame];
