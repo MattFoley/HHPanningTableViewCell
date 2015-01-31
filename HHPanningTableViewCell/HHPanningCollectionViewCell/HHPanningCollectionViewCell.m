@@ -38,7 +38,7 @@
 #define HH_PANNING_ANIMATION_DURATION		0.1f
 #define HH_PANNING_BOUNCE_DISTANCE			10.0f
 #define HH_PANNING_MINIMUM_PAN				20.0f
-#define HH_PANNING_MAXIMUM_PAN              100.0f // Set to 0.0f for full view width
+#define HH_PANNING_MAXIMUM_PAN              300.0f // Set to 0.0f for full view width
 #define HH_PANNING_REVEAL_DISTANCE          160.0f // Set to 0.0f to hide the cell completely
 #define HH_PANNING_TRIGGER_OFFSET			100.0f
 #define HH_PANNING_USE_VELOCITY             YES
@@ -286,8 +286,6 @@ static HHPanningCollectionViewCellDirection HHOppositeDirection(HHPanningCollect
         [cellView addSubview:containerView];
         
         if (revealed) {
-            
-            
             if (direction == HHPanningCollectionViewCellDirectionRight) {
                 frame.origin.x = bounds.origin.x + bounds.size.width - self.revealDistance;
             }
@@ -345,7 +343,7 @@ static HHPanningCollectionViewCellDirection HHOppositeDirection(HHPanningCollect
         } else {
             frame.origin.x = 0.0;
             
-            BOOL shouldBounce = self.shouldBounce;
+            BOOL shouldBounce = FALSE;
             
             if (shouldBounce) {
                 CGFloat bounceDuration = duration;
